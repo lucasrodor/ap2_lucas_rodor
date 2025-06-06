@@ -1,6 +1,6 @@
 from ninja import Router
 from typing import List
-from webscrapping.schemas import ImovelIn, ImovelOut
+from webscrapping.schemas import ImovelIn, ImovelOut, FiltroScraping
 from webscrapping import views
 
 router = Router()
@@ -18,5 +18,5 @@ async def listar_imoveis(request):
     return await views.listar_imoveis(request)
 
 @router.post("/executar-scraping")
-async def executar_scraping(request):
-    return await views.executar_scraping(request)
+async def executar_scraping(request, filtros: FiltroScraping):
+    return await views.executar_scraping(request, filtros)

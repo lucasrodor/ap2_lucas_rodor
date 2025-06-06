@@ -1,11 +1,14 @@
 import asyncio
 import pandas as pd
-from django.http import JsonResponse
 from django.utils.timezone import now
 from webscrapping.models import Imoveis
-from webscrapping.schemas import ImovelIn
+from webscrapping.schemas import ImovelIn, FiltroScraping
 from asgiref.sync import sync_to_async
 from pathlib import Path
+from webscrapping.scraping.navegador import iniciar_navegador
+from webscrapping.scraping.extrator import extrair_dados
+from webscrapping.scraping.tratamento import tratar_dataframe
+from webscrapping.scraping.filtros import aplicar_filtros
 
 @sync_to_async
 def salvar_no_banco_async(dados):
@@ -41,16 +44,23 @@ async def listar_imoveis(request):
     dados = await listar_todos_async()
     return dados
 
-async def executar_scraping(request):
-    from scraping.navegador import iniciar_navegador
-    from scraping.extrator import extrair_dados
-    from scraping.tratamento import tratar_dataframe
-
+async def executar_scraping(request, filtros: FiltroScraping):
     loop = asyncio.get_event_loop()
 
     def tarefa():
         driver = iniciar_navegador(headless=True)
         try:
+            aplicar_filtros(
+                driver,
+                tipo_operacao=filtros.tipo_operacao,
+                tipo_imovel=filtros.tipo_imovel,
+                localizacao=filtros.localizacao,
+                cidade=filtros.cidade,
+                bairro=filtros.bairro,
+                quartos=filtros.quartos,
+                preco_medio=filtros.preco_medio,
+                palavra_chave=filtros.palavra_chave,
+            )
             df = extrair_dados(driver)
             return tratar_dataframe(df).to_dict(orient="records")
         finally:

@@ -18,3 +18,13 @@ class ImovelIn(Schema):
 class ImovelOut(ImovelIn):
     id: int
     data_extracao: datetime
+
+class FiltroScraping(Schema):
+    tipo_operacao: Optional[str] = ""
+    tipo_imovel: Optional[str] = ""
+    localizacao: Optional[str] = ""
+    cidade: Optional[str] = ""
+    bairro: Optional[str] = ""
+    quartos: Optional[str] = ""
+    preco_medio: Optional[str] = ""
+    palavra_chave: Optional[str] = ""

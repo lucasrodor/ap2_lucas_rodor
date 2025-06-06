@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🟢 Streamlit: Debug App",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "frontend/app.py",                         // <-- Substitua pelo nome do seu script
+                "--server.address", "127.0.0.1",    // <-- Faz o app escutar em todas as interfaces
+                "--server.port", "8501",          // <-- Porta que você deseja usar
+                "--server.runOnSave", "false"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}

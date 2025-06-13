@@ -249,10 +249,11 @@ python manage.py runserver
 
 ### 🏘️ API Scraper (`/api/imoveis/`)
 
-| POST | `/executar-scraping` | Iniciar scraping |
+| POST | `/executar-scraping` |    Iniciar scraping    |
+|------|----------------------|------------------------|
 | GET  | `/resultados-atuais` | Ver últimos resultados |
-| GET  | `/imoveis`           | Listar imóveis |
-| POST | `/salvar-dados`      | Salvar imóveis |
+| GET  | `/imoveis`           |     Listar imóveis     |
+| POST | `/salvar-dados`      |     Salvar imóveis     |
 
 ---
 

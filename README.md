@@ -11,12 +11,12 @@ Desenvolvido por **Lucas Rodor**
 - [GitHub](https://github.com/lucasrodor)
 
 **Julia Felix Giannadrea**
--[Linkedin](https://www.linkedin.com/in/juliafgiannandrea/)
--[Github](https://github.com/juliafgiannandrea)
+- [Linkedin](https://www.linkedin.com/in/juliafgiannandrea/)
+- [Github](https://github.com/juliafgiannandrea)
 
 **Luigi Ajello**
--[Linkedin](https://www.linkedin.com/in/luigi-pedroso-ajello-346934278/)
--[Github](https://github.com/luigiajello)
+- [Linkedin](https://www.linkedin.com/in/luigi-pedroso-ajello-346934278/)
+- [Github](https://github.com/luigiajello)
 
 ---
 

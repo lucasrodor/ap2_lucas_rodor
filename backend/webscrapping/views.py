@@ -9,62 +9,82 @@ from webscrapping.scraping.navegador import iniciar_navegador
 from webscrapping.scraping.extrator import extrair_dados
 from webscrapping.scraping.tratamento import tratar_dataframe
 from webscrapping.scraping.filtros import aplicar_filtros
+from django.http import JsonResponse
+import requests 
+import json
+import tempfile
+
+# @sync_to_async
+# def salvar_no_banco_async(dados):
+#     novos = 0
+#     for item in dados:
+#         if Imoveis.objects.filter(link=item.link).exists():
+#             Imoveis.objects.create(**item.dict(), data_extracao=now())
+#             novos += 1
+#     return novos
+
+async def salvar_dados(request, dados: list[ImovelIn]):
+    novos = await salvar_no_banco_async(dados)
+    if novos == 0:
+        return {"mensagem": "Imóveis já cadastrados."}
+    else:
+        return {"mensagem": f"{novos} registros salvos com sucesso."}
+
 
 @sync_to_async
 def salvar_no_banco_async(dados):
     novos = 0
     for item in dados:
+        # Converte para dicionário
+        dados_dict = item.dict()
+
+        # Verifica se todos os campos (exceto o link) são "N/A" ou vazios
+        somente_na = all(
+            valor in ["N/A", None, ""] for chave, valor in dados_dict.items() if chave != "link"
+        )
+
+        # Se TODOS os campos (exceto o link) forem N/A, ignora
+        if somente_na:
+            continue
+
+        # Se passou na verificação, salva normalmente
         if not Imoveis.objects.filter(link=item.link).exists():
-            Imoveis.objects.create(**item.dict(), data_extracao=now())
+            Imoveis.objects.create(**dados_dict, data_extracao=now())
             novos += 1
+
     return novos
 
-@sync_to_async
-def exportar_excel_async(dados):
-    df = pd.DataFrame([item.dict() for item in dados])
-    path = Path("data")
-    path.mkdir(exist_ok=True)
-    filename = path / f"imoveis_{now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
-    df.to_excel(filename, index=False)
-    return str(filename)
+
+
+
+
 
 @sync_to_async
 def listar_todos_async():
     return list(Imoveis.objects.all().values())
 
-async def salvar_dados(request, dados: list[ImovelIn]):
-    novos = await salvar_no_banco_async(dados)
-    return {"mensagem": f"{novos} registros salvos com sucesso."}
-
-async def exportar_excel(request, dados: list[ImovelIn]):
-    path = await exportar_excel_async(dados)
-    return {"mensagem": "Arquivo Excel exportado com sucesso.", "arquivo": path}
-
 async def listar_imoveis(request):
     dados = await listar_todos_async()
-    return dados
+    return JsonResponse(dados, safe=False)
 
-async def executar_scraping(request, filtros: FiltroScraping):
-    loop = asyncio.get_event_loop()
 
-    def tarefa():
-        driver = iniciar_navegador(headless=True)
-        try:
-            aplicar_filtros(
-                driver,
-                tipo_operacao=filtros.tipo_operacao,
-                tipo_imovel=filtros.tipo_imovel,
-                localizacao=filtros.localizacao,
-                cidade=filtros.cidade,
-                bairro=filtros.bairro,
-                quartos=filtros.quartos,
-                preco_medio=filtros.preco_medio,
-                palavra_chave=filtros.palavra_chave,
-            )
-            df = extrair_dados(driver)
-            return tratar_dataframe(df).to_dict(orient="records")
-        finally:
-            driver.quit()
+ARQUIVO_RESULTADOS = Path(tempfile.gettempdir()) / "resultados_scraping.json"
 
-    resultado = await loop.run_in_executor(None, tarefa)
-    return resultado
+async def executar_scraping_e_retornar(filtros: FiltroScraping):
+    ARQUIVO_RESULTADOS.write_text("[]", encoding="utf-8") #para apagar resultados de busca anteriores 
+    driver = iniciar_navegador(headless=True)
+    try:
+        aplicar_filtros(driver, **filtros.dict())
+        df = extrair_dados(driver)
+        dados = tratar_dataframe(df).to_dict(orient="records")
+
+        # salvar os resultados no arquivo temporário
+        ARQUIVO_RESULTADOS.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+        return dados
+    except Exception as e:
+        print(f"Erro ao executar scraping: {e}")
+        return []
+    finally:
+        driver.quit()
+
+
